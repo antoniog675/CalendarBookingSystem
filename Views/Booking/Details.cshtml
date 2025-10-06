@@ -1,0 +1,55 @@
+@model CalendarBookingSystem.Models.Booking
+
+@{
+    ViewData["Title"] = "Booking Details";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Booking Details</h4>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Name)</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Name)</dd>
+
+                        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Email)</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Email)</dd>
+
+                        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Date)</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Date)</dd>
+
+                        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Time)</dt>
+                        <dd class="col-sm-9">@Model.Time.ToString(@"hh\:mm tt")</dd>
+
+                        <dt class="col-sm-3">Full Date & Time</dt>
+                        <dd class="col-sm-9">@Model.GetFullDateTime().ToString("dddd, MMMM dd, yyyy 'at' h:mm tt")</dd>
+
+                        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Description)</dt>
+                        <dd class="col-sm-9">
+                            @if (string.IsNullOrEmpty(Model.Description))
+                            {
+                                <em class="text-muted">No description provided</em>
+                            }
+                            else
+                            {
+                                @Html.DisplayFor(model => model.Description)
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.CreatedAt)</dt>
+                        <dd class="col-sm-9">@Model.CreatedAt.ToString("dddd, MMMM dd, yyyy 'at' h:mm tt")</dd>
+                    </dl>
+
+                    <div class="mt-4">
+                        <a asp-action="Index" class="btn btn-primary">Back to Calendar</a>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete Booking</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

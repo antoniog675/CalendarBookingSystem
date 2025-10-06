@@ -1,0 +1,111 @@
+@model CalendarBookingSystem.Models.Booking
+
+@{
+    ViewData["Title"] = "Create Booking";
+    var availableSlots = ViewBag.AvailableTimeSlots as List<CalendarBookingSystem.Models.TimeSlot> ?? new List<CalendarBookingSystem.Models.TimeSlot>();
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Create New Booking</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Name" class="form-label"></label>
+                                    <input asp-for="Name" class="form-control" placeholder="Enter your full name" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Email" class="form-label"></label>
+                                    <input asp-for="Email" class="form-control" placeholder="Enter your email address" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Date" class="form-label"></label>
+                                    <input asp-for="Date" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                    <span asp-validation-for="Date" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Time" class="form-label"></label>
+                                    <select asp-for="Time" class="form-select">
+                                        <option value="">Select a time slot</option>
+                                        @foreach (var slot in availableSlots)
+                                        {
+                                            <option value="@slot.Time">@slot.Time.ToString(@"hh\:mm tt")</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Time" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter any additional details or special requirements"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Create Booking</button>
+                            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Update available time slots when date changes
+    document.getElementById('Date').addEventListener('change', function() {
+        const selectedDate = this.value;
+        const timeSelect = document.getElementById('Time');
+        
+        if (selectedDate) {
+            fetch(`/Booking/GetAvailableSlots?date=${selectedDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Clear existing options
+                    timeSelect.innerHTML = '<option value="">Select a time slot</option>';
+                    
+                    // Add available slots
+                    data.forEach(slot => {
+                        const option = document.createElement('option');
+                        option.value = slot.time;
+                        option.textContent = formatTime(slot.time);
+                        timeSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching available slots:', error);
+                });
+        }
+    });
+
+    function formatTime(timeString) {
+        const time = new Date('2000-01-01T' + timeString);
+        return time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

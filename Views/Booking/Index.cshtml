@@ -1,0 +1,242 @@
+@model CalendarBookingSystem.Models.BookingViewModel
+
+@{
+    ViewData["Title"] = "Calendar Booking System";
+    var calendarDays = Model.GetCalendarDays();
+    var monthNames = new[] { "", "January", "February", "March", "April", "May", "June", 
+                           "July", "August", "September", "October", "November", "December" };
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="text-center">@monthNames[Model.CurrentMonth] @Model.CurrentYear</h2>
+            <div class="text-center">
+                <a href="?month=@(Model.CurrentMonth == 1 ? 12 : Model.CurrentMonth - 1)&amp;year=@(Model.CurrentMonth == 1 ? Model.CurrentYear - 1 : Model.CurrentYear)" 
+                   class="btn btn-outline-primary">&larr; Previous</a>
+                <a href="?month=@(Model.CurrentMonth == 12 ? 1 : Model.CurrentMonth + 1)&amp;year=@(Model.CurrentMonth == 12 ? Model.CurrentYear + 1 : Model.CurrentYear)" 
+                   class="btn btn-outline-primary">Next &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="calendar-grid">
+                <!-- Day headers -->
+                <div class="calendar-row header-row">
+                    <div class="calendar-day header">Sun</div>
+                    <div class="calendar-day header">Mon</div>
+                    <div class="calendar-day header">Tue</div>
+                    <div class="calendar-day header">Wed</div>
+                    <div class="calendar-day header">Thu</div>
+                    <div class="calendar-day header">Fri</div>
+                    <div class="calendar-day header">Sat</div>
+                </div>
+
+                @{ int dayCount = 0; }
+                @while (dayCount < calendarDays.Count)
+                {
+                    <div class="calendar-row">
+                        @for (int i = 0; i < 7 && dayCount < calendarDays.Count; i++, dayCount++)
+                        {
+                            var day = calendarDays[dayCount];
+                            var isCurrentMonth = day.Month == Model.CurrentMonth;
+                            var isToday = day.Date == DateTime.Today;
+                            var bookingsForDay = Model.GetBookingsForDate(day);
+                            var dayClass = $"calendar-day {(isCurrentMonth ? "current-month" : "other-month")} {(isToday ? "today" : "")}";
+
+                            <div class="@dayClass">
+                                <div class="day-number">@day.Day</div>
+                                
+                                @if (isCurrentMonth && day >= DateTime.Today)
+                                {
+                                    <div class="day-actions">
+                                        <a href="@Url.Action("Create", new { date = day.ToString("yyyy-MM-dd") })" 
+                                           class="btn btn-sm btn-primary">Book</a>
+                                    </div>
+                                }
+
+                                @if (bookingsForDay.Any())
+                                {
+                                    <div class="bookings">
+                                        @foreach (var booking in bookingsForDay.Take(3))
+                                        {
+                                            <div class="booking-item" title="@booking.Name - @booking.Time.ToString(@"hh\:mm")">
+                                                <small>
+                                                    @booking.Time.ToString(@"hh\:mm") - @booking.Name.Substring(0, Math.Min(booking.Name.Length, 15))@(booking.Name.Length > 15 ? "..." : "")
+                                                </small>
+                                                <div class="booking-actions">
+                                                    <a href="@Url.Action("Details", new { id = booking.Id })" class="text-info" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("Delete", new { id = booking.Id })" class="text-danger ms-1" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (bookingsForDay.Count > 3)
+                                        {
+                                            <small class="text-muted">+@(bookingsForDay.Count - 3) more...</small>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Upcoming Bookings</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Bookings.Where(b => b.GetFullDateTime() >= DateTime.Now).Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var booking in Model.Bookings.Where(b => b.GetFullDateTime() >= DateTime.Now).OrderBy(b => b.GetFullDateTime()))
+                                    {
+                                        <tr>
+                                            <td>@booking.Date.ToString("MM/dd/yyyy")</td>
+                                            <td>@booking.Time.ToString(@"hh\:mm")</td>
+                                            <td>@booking.Name</td>
+                                            <td>@booking.Email</td>
+                                            <td>@(string.IsNullOrEmpty(booking.Description) ? "N/A" : booking.Description)</td>
+                                            <td>
+                                                <a href="@Url.Action("Details", new { id = booking.Id })" class="btn btn-sm btn-info">Details</a>
+                                                <a href="@Url.Action("Delete", new { id = booking.Id })" class="btn btn-sm btn-danger">Delete</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No upcoming bookings.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .calendar-grid {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .calendar-row {
+        display: flex;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .calendar-row:last-child {
+        border-bottom: none;
+    }
+
+    .calendar-day {
+        flex: 1;
+        min-height: 120px;
+        border-right: 1px solid #dee2e6;
+        padding: 8px;
+        position: relative;
+        background-color: #fff;
+    }
+
+    .calendar-day:last-child {
+        border-right: none;
+    }
+
+    .calendar-day.header {
+        min-height: 40px;
+        background-color: #f8f9fa;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .calendar-day.other-month {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+
+    .calendar-day.today {
+        background-color: #e3f2fd;
+        border: 2px solid #2196f3;
+    }
+
+    .day-number {
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+
+    .day-actions {
+        margin-bottom: 8px;
+    }
+
+    .bookings {
+        margin-top: 4px;
+    }
+
+    .booking-item {
+        background-color: #e7f3ff;
+        border: 1px solid #b3d9ff;
+        border-radius: 3px;
+        padding: 2px 4px;
+        margin-bottom: 2px;
+        font-size: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .booking-actions {
+        display: none;
+    }
+
+    .booking-item:hover .booking-actions {
+        display: block;
+    }
+
+    .current-month .day-number {
+        color: #333;
+    }
+
+    .other-month .day-number {
+        color: #999;
+    }
+</style>
