@@ -42,3 +42,4 @@
 /Users/antonio/CalendarBookingSystem/obj/Debug/net8.0/CalendarBookingSystem.pdb
 /Users/antonio/CalendarBookingSystem/obj/Debug/net8.0/CalendarBookingSystem.genruntimeconfig.cache
 /Users/antonio/CalendarBookingSystem/obj/Debug/net8.0/ref/CalendarBookingSystem.dll
+/Users/antonio/CalendarBookingSystem/obj/Debug/net8.0/CalendarBookingSystem.sourcelink.json

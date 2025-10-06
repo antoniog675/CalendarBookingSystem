@@ -48,7 +48,7 @@
                                         <option value="">Select a time slot</option>
                                         @foreach (var slot in availableSlots)
                                         {
-                                            <option value="@slot.Time">@slot.Time.ToString(@"hh\:mm tt")</option>
+                                            <option value="@slot.Time">@slot.Time.ToString(@"hh\:mm")</option>
                                         }
                                     </select>
                                     <span asp-validation-for="Time" class="text-danger"></span>
